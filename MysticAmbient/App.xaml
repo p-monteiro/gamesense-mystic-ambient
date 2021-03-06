@@ -1,0 +1,30 @@
+﻿<Application x:Class="MysticAmbient.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.modernwpf.com/2019"
+             xmlns:local="clr-namespace:MysticAmbient" 
+             ShutdownMode="OnExplicitShutdown"
+             >
+
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+
+                <ui:ThemeResources />
+                <ui:XamlControlsResources />
+                <ui:IntellisenseResources Source="/ModernWpf;component/DesignTime/DesignTimeResources.xaml" />
+                <!-- Other merged dictionaries here -->
+                <ResourceDictionary Source="/Resources/NotifyIcon.xaml" />
+
+                <ResourceDictionary Source="/Styles/Fonts.xaml"/>
+                <ResourceDictionary Source="/Styles/RoundButtons.xaml"/>
+                <ResourceDictionary Source="/Styles/WindowNoTitleBar.xaml"/>
+
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Other app resources here -->
+
+
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>
