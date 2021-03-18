@@ -2,6 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:tb="http://www.hardcodet.net/taskbar"
                     xmlns:vm="clr-namespace:MysticAmbient.ViewModels"
+                    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                     >
 
     <!-- The taskbar context menu - the first row is a dummy to show off simple data binding -->
@@ -9,7 +10,7 @@
         The "shared" directive is needed if we reopen the sample window a few times - WPF will otherwise
         reuse the same context menu (which is a resource) again (which will have its DataContext set to the old TaskbarIcon)
     -->
-    <ContextMenu x:Shared="false" x:Key="TrayMenu">
+    <ContextMenu x:Shared="true" x:Key="TrayMenu">
         <MenuItem Header="Open Mystic Ambient" Command="{Binding OpenMainWindowCommand}" />
         <Separator />
         <MenuItem Header="Enable Lights" Command="{Binding EnableLightsCommand}" />
@@ -30,7 +31,7 @@
         <!-- self-assign a data context (could also be done programmatically) -->
 
         <tb:TaskbarIcon.DataContext>
-            <vm:NotifyIconViewModel />
+            <vm:AppViewModel />
         </tb:TaskbarIcon.DataContext>
     </tb:TaskbarIcon>
     

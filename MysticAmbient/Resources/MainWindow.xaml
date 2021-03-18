@@ -17,7 +17,6 @@
         WindowStartupLocation="Manual"
         Width="350" 
         Height="300"
-        Loaded="Window_Loaded"
         
         ui:WindowHelper.UseModernWindowStyle="True"
         ui:ThemeManager.RequestedTheme="Dark" 
@@ -28,19 +27,23 @@
         BorderThickness="0"
         Background="Transparent"
         AllowsTransparency="True"
+        
+        
+        Loaded="Window_Loaded" ContentRendered="Window_ContentRendered"
         >
-
-    <Window.DataContext>
-        <vm:MainWindowViewModel/>
-    </Window.DataContext>
-
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+    </Window.Resources>
+    <d:Window.DataContext>
+        <vm:AppViewModel />
+    </d:Window.DataContext>
     <Border
         x:Name="WindowBg" 
         CornerRadius="10"
         BorderThickness="1" 
         BorderBrush="{ui:ThemeResource ResourceKey=SystemControlTransientBorderBrush}"
         
-        Background="{ui:ThemeResource ResourceKey=SystemControlBackgroundChromeMediumBrush}"
+        Background="{ui:ThemeResource ResourceKey=SystemControlBackgroundChromeMediumLowBrush}"
         >
 
         <Grid x:Name="WindowBase">
@@ -62,53 +65,87 @@
                     <RowDefinition Height="50"/>
                 </Grid.RowDefinitions>
 
-                <Grid x:Name="TitleBar"
-                      Grid.Row="0"
-                      Background="{ui:ThemeResource ResourceKey=SystemControlBackgroundChromeMediumLowBrush}"
-                      >
 
-                    <TextBlock Text="Mystic Ambient"
+
+
+
+                <Border x:Name="TitleBar1"
+                        Panel.ZIndex="1"
+                        Grid.Row="0"
+                        Background="{ui:ThemeResource ResourceKey=SystemControlBackgroundChromeMediumBrush}"
+                        BorderThickness="0 0 0 1"
+                        BorderBrush="{ui:ThemeResource ResourceKey=SystemControlPageBackgroundChromeMediumLowBrush}"
+                        >
+                    <Grid >
+
+                        <TextBlock Text="Mystic Ambient"
                                 FontFamily="{StaticResource KardustTS}" 
                                 FontSize="20"
                                 VerticalAlignment="Center" 
                                 HorizontalAlignment="Center" 
                                 Margin="0,0,0,5"/>
 
-                    <Button Content="&#xf36a;" FontFamily="{StaticResource FluentIcons}" Command="{Binding CloseWindowCommand}" HorizontalAlignment="Right" Height="30" Width="30" Style="{StaticResource RoundButtonStyle}" BorderBrush="{ui:ThemeResource ResourceKey=SystemControlBackgroundChromeMediumBrush}" BorderThickness="2" Margin="15,0"/>
-                    <Button Content="&#xf6aa;" FontFamily="{StaticResource FluentIcons}" Command="{Binding CloseWindowCommand}" HorizontalAlignment="Left" Height="30" Width="30" Style="{StaticResource RoundButtonStyle}" BorderBrush="{ui:ThemeResource ResourceKey=SystemControlBackgroundChromeMediumBrush}" BorderThickness="2" Margin="15,0" IsEnabled="False"/>
+                        <Button Content="&#xf36a;" FontFamily="{StaticResource FluentIcons}" Command="{Binding CloseMainWindowCommand}" HorizontalAlignment="Right" Height="30" Width="30" Style="{StaticResource RoundButtonStyle}" BorderBrush="{ui:ThemeResource ResourceKey=SystemControlBackgroundChromeMediumBrush}" BorderThickness="2" Margin="15,0"/>
+                        <Button Content="&#xf6aa;" FontFamily="{StaticResource FluentIcons}" HorizontalAlignment="Left" Height="30" Width="30" Style="{StaticResource RoundButtonStyle}" BorderBrush="{ui:ThemeResource ResourceKey=SystemControlBackgroundChromeMediumBrush}" BorderThickness="2" Margin="15,0" IsEnabled="False"/>
 
-                </Grid>
+
+                    </Grid>
+                </Border>
+
+                <Border x:Name="ConnectInfo"
+                        Panel.ZIndex="2"
+                        Grid.Row="2"
+                        Height="55"
+                        VerticalAlignment="Bottom"
+                        Background="{ui:ThemeResource ResourceKey=SystemControlBackgroundChromeMediumBrush}"
+                        Visibility="Visible"
+                        BorderThickness="0 2 0 1"
+                        BorderBrush="{ui:ThemeResource ResourceKey=SystemControlPageBackgroundChromeMediumLowBrush}"
+                        >
+                    <Grid Margin="15,5">
+
+                        <TextBlock Text="{Binding Path=ConnectStatus}" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+                        <ui:ProgressRing IsActive="{Binding Path=TryConnectSseCommand.IsRunning}" HorizontalAlignment="Right" />
+                        <Button Content="Try Again" Command="{Binding Path=TryConnectSseCommand}" HorizontalAlignment="Right" Visibility="{Binding Path=ShowTryAgain, Converter={StaticResource BoolToVis}}"/>
+
+                    </Grid>
+                </Border>
 
 
                 <Grid x:Name="ControlArea"
+                      Panel.ZIndex="1"
                       Grid.Row="2"
-                      Height="50"
-                      Background="{ui:ThemeResource ResourceKey=SystemControlBackgroundChromeMediumLowBrush}"
+                      Height="55"
+                      VerticalAlignment="Bottom"
+                      Background="{ui:ThemeResource ResourceKey=SystemControlBackgroundChromeMediumBrush}"
+                      Visibility="Visible"
+                      IsEnabled="False"
                       >
 
                     <TextBlock Text="Enable Ambient Lights" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="16" Style="{ui:ThemeResource ResourceKey=BaseTextBlockStyle}" Margin="15,0"/>
 
                     <ui:ToggleSwitch x:Name="controlSwitch"  OnContent="" OffContent="" Width="40" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="15,0" Toggled="ToggleSwitch_Toggled"/>
 
-                    <ui:ProgressBar IsIndeterminate="{Binding ElementName=controlSwitch,Path=IsOn}" ShowError="False" Value="0" VerticalAlignment="Top" Width="348" CornerRadius="0" />
-
-
                 </Grid>
-
 
                 <Border x:Name="InfoArea"
                         Panel.ZIndex="1"
                         Grid.Row="1"
-                        Height="45"
+                        Height="55"
                         VerticalAlignment="Bottom"
-                        Background="{ui:ThemeResource ResourceKey=SystemControlBackgroundChromeMediumLowBrush}"
-                        Visibility="Visible"
-                        BorderThickness="0 2 0 0"
-                        BorderBrush="{ui:ThemeResource ResourceKey=SystemControlBackgroundChromeMediumBrush}"
+                        Background="{ui:ThemeResource ResourceKey=SystemControlBackgroundChromeMediumBrush}"
+                        Visibility="Hidden"
+                        BorderThickness="0 2 0 1"
+                        BorderBrush="{ui:ThemeResource ResourceKey=SystemControlPageBackgroundChromeMediumLowBrush}"
                         >
-
-                    <TextBlock Text="Connecting to SteelSeries Engine" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    <Grid>
+                        <TextBlock Text="Enabling Mystic Ambient" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </Grid>
                 </Border>
+
+
+
+
 
 
                 <Grid Grid.Row="1" VerticalAlignment="Center">

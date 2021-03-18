@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using MysticAmbient.ViewModels;
+using System.Threading.Tasks;
 using System.Windows;
 
 namespace MysticAmbient.Resources
@@ -19,6 +20,7 @@ namespace MysticAmbient.Resources
             this.Left = desktopWorkingArea.Right - this.Width - 10;
             this.Top = desktopWorkingArea.Bottom - this.Height - 10;
             this.Topmost = true;
+
         }
 
         private async void ToggleSwitch_Toggled(object sender, RoutedEventArgs e)
@@ -34,6 +36,12 @@ namespace MysticAmbient.Resources
 
             ts.Toggled += ToggleSwitch_Toggled;
             ts.IsEnabled = true;
+
+        }
+
+        private void Window_ContentRendered(object sender, System.EventArgs e)
+        {
+            (DataContext as AppViewModel).TryConnectSseCommand.ExecuteAsync(null);
 
         }
     }

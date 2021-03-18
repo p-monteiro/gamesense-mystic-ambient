@@ -7,6 +7,7 @@ using MysticAmbient.Utils;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Timers;
+using MysticAmbient.ViewModels;
 
 namespace MysticAmbient
 {
@@ -15,8 +16,11 @@ namespace MysticAmbient
     /// </summary>
     public partial class App : Application
     {
+
+
         private TaskbarIcon notifyIcon;
         private Timer refreshIconTimer;
+
 
         protected override void OnStartup(StartupEventArgs e)
         {
@@ -31,8 +35,10 @@ namespace MysticAmbient
 
             // I HATE BLURRY ICONS
             refreshIconTimer = new Timer(1000);
-            refreshIconTimer.Elapsed += (sender, e) => DrawIcon();
+            //refreshIconTimer.Elapsed += (sender, e) => DrawIcon();
             refreshIconTimer.Start();
+
+
         }
 
 
