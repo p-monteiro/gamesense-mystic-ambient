@@ -36,7 +36,7 @@ namespace MysticAmbient.Utils
 
         public async Task<bool> InitGameSenseAsync()
         {
-            return (IsReady = false);
+            //return (IsReady = false);
             try
             {
                 // Read configuration from %PROGRAMDATA%/SteelSeries/SteelSeries Engine 3/coreProps.json

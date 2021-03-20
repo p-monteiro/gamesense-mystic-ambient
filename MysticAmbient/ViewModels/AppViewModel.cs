@@ -60,29 +60,45 @@ namespace MysticAmbient.ViewModels
         private void ExitApplication() { Application.Current.Shutdown(); }
 
         public AsyncRelayCommand TryConnectSseCommand { get; }
-        private bool TryConnectSseCanExecute() => !TryConnectSseCommand.IsRunning && !SseClient.IsReady;
+        private bool TryConnectSseCanExecute() => !IsConnecting && !IsConnected;
         private async Task TryConnectSse()
         {
+            IsOpen = true;
+            IsConnecting = true;
             (TryConnectSseCommand as AsyncRelayCommand).NotifyCanExecuteChanged();
+
             ConnectStatus = "Connecting to GameSense";
             await Task.Delay(1000);
+
             IsConnected = await SseClient.InitGameSenseAsync();
+            IsConnecting = false;
+            (TryConnectSseCommand as AsyncRelayCommand).NotifyCanExecuteChanged();
+
             if (IsConnected)
             {
                 ConnectStatus = "Connected to GameSense";
+                await Task.Delay(1000);
+                IsOpen = false;
             }
             else
             {
                 ConnectStatus = "Failed to connect to GameSense";
             }
+            
         }
 
         private string _connectStatus;
         public string ConnectStatus { get => _connectStatus; private set => SetProperty(ref _connectStatus, value); }
 
-        private bool _isConnected;
-        public bool IsConnected { get => _isConnected; private set => SetProperty(ref _isConnected, value); }
+        private bool _isConnecting;
+        public bool IsConnecting { get => _isConnecting; private set { SetProperty(ref _isConnecting, value); OnPropertyChanged("ShowTryAgain"); } }
 
-        public bool ShowTryAgain { get => !IsConnected && !TryConnectSseCommand.IsRunning; }
+        private bool _isConnected;
+        public bool IsConnected { get => _isConnected; private set { SetProperty(ref _isConnected, value); OnPropertyChanged("ShowTryAgain"); } }
+
+        private bool _isOpen = false;
+        public bool IsOpen { get => _isOpen; private set { SetProperty(ref _isOpen, value);} }
+
+        public bool ShowTryAgain { get => !IsConnected && !IsConnecting; }
     }
 }

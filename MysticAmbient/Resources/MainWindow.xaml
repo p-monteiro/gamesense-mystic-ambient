@@ -6,6 +6,7 @@
         xmlns:ui="http://schemas.modernwpf.com/2019"
         xmlns:local="clr-namespace:MysticAmbient"
         xmlns:vm="clr-namespace:MysticAmbient.ViewModels"
+        xmlns:utils="clr-namespace:MysticAmbient.Utils"
         mc:Ignorable="d"
         
         Title="Mystic Ambient"
@@ -32,7 +33,7 @@
         Loaded="Window_Loaded" ContentRendered="Window_ContentRendered"
         >
     <Window.Resources>
-        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+        <utils:BoolToVisConverter x:Key="BoolToVis" />
     </Window.Resources>
     <d:Window.DataContext>
         <vm:AppViewModel />
@@ -98,15 +99,15 @@
                         Height="55"
                         VerticalAlignment="Bottom"
                         Background="{ui:ThemeResource ResourceKey=SystemControlBackgroundChromeMediumBrush}"
-                        Visibility="Visible"
+                        Visibility="{Binding Path=IsOpen, Converter={StaticResource BoolToVis}, ConverterParameter='t2v_f2c'}"
                         BorderThickness="0 2 0 1"
                         BorderBrush="{ui:ThemeResource ResourceKey=SystemControlPageBackgroundChromeMediumLowBrush}"
                         >
                     <Grid Margin="15,5">
 
                         <TextBlock Text="{Binding Path=ConnectStatus}" VerticalAlignment="Center" HorizontalAlignment="Left"/>
-                        <ui:ProgressRing IsActive="{Binding Path=TryConnectSseCommand.IsRunning}" HorizontalAlignment="Right" />
-                        <Button Content="Try Again" Command="{Binding Path=TryConnectSseCommand}" HorizontalAlignment="Right" Visibility="{Binding Path=ShowTryAgain, Converter={StaticResource BoolToVis}}"/>
+                        <ui:ProgressRing IsActive="{Binding Path=IsConnecting}" HorizontalAlignment="Right" />
+                        <Button Content="Try Again" Command="{Binding Path=TryConnectSseCommand}" HorizontalAlignment="Right" Visibility="{Binding Path=ShowTryAgain, Converter={StaticResource BoolToVis}, ConverterParameter='t2v_f2c'}"/>
 
                     </Grid>
                 </Border>
