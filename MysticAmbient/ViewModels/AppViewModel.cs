@@ -29,7 +29,7 @@ namespace MysticAmbient.ViewModels
             TryConnectSseCommand = new AsyncRelayCommand(TryConnectSse, TryConnectSseCanExecute);
 
             OpenMainWindowCommand.Execute(null);
-            //TryConnectSseCommand.Execute(null);
+            TryConnectSseCommand.Execute(null);
 
         }
 
@@ -59,36 +59,41 @@ namespace MysticAmbient.ViewModels
         public RelayCommand ExitApplicationCommand { get; }
         private void ExitApplication() { Application.Current.Shutdown(); }
 
+        #region Connect to SSE
+
         public AsyncRelayCommand TryConnectSseCommand { get; }
         private bool TryConnectSseCanExecute() => !IsConnecting && !IsConnected;
         private async Task TryConnectSse()
         {
-            IsOpen = true;
+            IsConnectionStatusPanelOpen = true;
             IsConnecting = true;
-            (TryConnectSseCommand as AsyncRelayCommand).NotifyCanExecuteChanged();
+            TryConnectSseCommand.NotifyCanExecuteChanged();
 
-            ConnectStatus = "Connecting to GameSense";
+            ConnectStatusLabel = "Connecting to GameSense";
             await Task.Delay(1000);
 
             IsConnected = await SseClient.InitGameSenseAsync();
             IsConnecting = false;
-            (TryConnectSseCommand as AsyncRelayCommand).NotifyCanExecuteChanged();
+            TryConnectSseCommand.NotifyCanExecuteChanged();
 
             if (IsConnected)
             {
-                ConnectStatus = "Connected to GameSense";
+                ConnectStatusLabel = "Connected to GameSense";
                 await Task.Delay(1000);
-                IsOpen = false;
+                IsConnectionStatusPanelOpen = false;
             }
             else
             {
-                ConnectStatus = "Failed to connect to GameSense";
+                ConnectStatusLabel = "Failed to connect to GameSense";
             }
-            
+
         }
 
-        private string _connectStatus;
-        public string ConnectStatus { get => _connectStatus; private set => SetProperty(ref _connectStatus, value); }
+        private bool _isConnectionStatusPanelOpen = false;
+        public bool IsConnectionStatusPanelOpen { get => _isConnectionStatusPanelOpen; private set { SetProperty(ref _isConnectionStatusPanelOpen, value); } }
+
+        private string _connectionStatusLabel;
+        public string ConnectStatusLabel { get => _connectionStatusLabel; private set => SetProperty(ref _connectionStatusLabel, value); }
 
         private bool _isConnecting;
         public bool IsConnecting { get => _isConnecting; private set { SetProperty(ref _isConnecting, value); OnPropertyChanged("ShowTryAgain"); } }
@@ -96,9 +101,39 @@ namespace MysticAmbient.ViewModels
         private bool _isConnected;
         public bool IsConnected { get => _isConnected; private set { SetProperty(ref _isConnected, value); OnPropertyChanged("ShowTryAgain"); } }
 
-        private bool _isOpen = false;
-        public bool IsOpen { get => _isOpen; private set { SetProperty(ref _isOpen, value);} }
-
         public bool ShowTryAgain { get => !IsConnected && !IsConnecting; }
+
+        #endregion
+
+        private bool _isEnabled = false;
+        public bool IsEnabled
+        {
+            get => _isEnabled; 
+            set
+            {
+                TryEnableSSE();
+            }
+        }
+
+        private bool _isEnabling = true;
+        public bool IsEnabling
+        {
+            get => _isEnabling;
+            private set => SetProperty(ref _isEnabling, value);
+
+        }
+
+        private async void TryEnableSSE()
+        {
+            IsEnabling = false;
+            await Task.Delay(10000);
+            Debug.WriteLine("VM: Change " + (!IsEnabled).ToString());
+            _isEnabled = !_isEnabled;
+            IsEnabling = true;
+
+            OnPropertyChanged("IsEnabled");
+            //SetProperty(ref _isEnabling, value);
+        }
+
     }
 }

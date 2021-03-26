@@ -29,8 +29,8 @@
         Background="Transparent"
         AllowsTransparency="True"
         
-        
-        Loaded="Window_Loaded" ContentRendered="Window_ContentRendered"
+
+        Loaded="Window_Loaded"
         >
     <Window.Resources>
         <utils:BoolToVisConverter x:Key="BoolToVis" />
@@ -48,6 +48,10 @@
         >
 
         <Grid x:Name="WindowBase">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="297*"/>
+            </Grid.RowDefinitions>
             <Grid.OpacityMask>
                 <VisualBrush Visual="{Binding ElementName=WindowMask}"/>
             </Grid.OpacityMask>
@@ -56,14 +60,14 @@
                 x:Name="WindowMask"
                 BorderThickness="0"
                 CornerRadius="{Binding ElementName=WindowBg, Path=CornerRadius}"
-                Background="{Binding ElementName=WindowBg, Path=Background}"
+                Background="{Binding ElementName=WindowBg, Path=Background}" Grid.RowSpan="2"
             />
 
-            <Grid x:Name="WindowLayout">
+            <Grid x:Name="WindowLayout" Grid.RowSpan="2">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="50"/>
+                    <RowDefinition Height="55"/>
                     <RowDefinition Height="*"/>
-                    <RowDefinition Height="50"/>
+                    <RowDefinition Height="55"/>
                 </Grid.RowDefinitions>
 
 
@@ -87,7 +91,6 @@
                                 Margin="0,0,0,5"/>
 
                         <Button Content="&#xf36a;" FontFamily="{StaticResource FluentIcons}" Command="{Binding CloseMainWindowCommand}" HorizontalAlignment="Right" Height="30" Width="30" Style="{StaticResource RoundButtonStyle}" BorderBrush="{ui:ThemeResource ResourceKey=SystemControlBackgroundChromeMediumBrush}" BorderThickness="2" Margin="15,0"/>
-                        <Button Content="&#xf6aa;" FontFamily="{StaticResource FluentIcons}" HorizontalAlignment="Left" Height="30" Width="30" Style="{StaticResource RoundButtonStyle}" BorderBrush="{ui:ThemeResource ResourceKey=SystemControlBackgroundChromeMediumBrush}" BorderThickness="2" Margin="15,0" IsEnabled="False"/>
 
 
                     </Grid>
@@ -95,17 +98,17 @@
 
                 <Border x:Name="ConnectInfo"
                         Panel.ZIndex="2"
-                        Grid.Row="2"
-                        Height="55"
+                        Grid.Row="1"
                         VerticalAlignment="Bottom"
+                        Height="55"
                         Background="{ui:ThemeResource ResourceKey=SystemControlBackgroundChromeMediumBrush}"
-                        Visibility="{Binding Path=IsOpen, Converter={StaticResource BoolToVis}, ConverterParameter='t2v_f2c'}"
+                        Visibility="{Binding Path=IsConnectionStatusPanelOpen, Converter={StaticResource BoolToVis}, ConverterParameter='t2v_f2c'}"
                         BorderThickness="0 2 0 1"
-                        BorderBrush="{ui:ThemeResource ResourceKey=SystemControlPageBackgroundChromeMediumLowBrush}"
+                        BorderBrush="{ui:ThemeResource ResourceKey=SystemControlPageBackgroundChromeMediumLowBrush}" Grid.RowSpan="2"
                         >
                     <Grid Margin="15,5">
 
-                        <TextBlock Text="{Binding Path=ConnectStatus}" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+                        <TextBlock Text="{Binding Path=ConnectStatusLabel}" VerticalAlignment="Center" HorizontalAlignment="Left"/>
                         <ui:ProgressRing IsActive="{Binding Path=IsConnecting}" HorizontalAlignment="Right" />
                         <Button Content="Try Again" Command="{Binding Path=TryConnectSseCommand}" HorizontalAlignment="Right" Visibility="{Binding Path=ShowTryAgain, Converter={StaticResource BoolToVis}, ConverterParameter='t2v_f2c'}"/>
 
@@ -113,34 +116,42 @@
                 </Border>
 
 
-                <Grid x:Name="ControlArea"
-                      Panel.ZIndex="1"
-                      Grid.Row="2"
-                      Height="55"
-                      VerticalAlignment="Bottom"
-                      Background="{ui:ThemeResource ResourceKey=SystemControlBackgroundChromeMediumBrush}"
-                      Visibility="Visible"
-                      IsEnabled="False"
-                      >
+                <Border x:Name="ControlArea"
+                        Panel.ZIndex="1"
+                        Grid.Row="2"
+                        VerticalAlignment="Bottom"
+                        Height="55"
+                        Background="{ui:ThemeResource ResourceKey=SystemControlBackgroundChromeMediumBrush}"
+                        Visibility="Visible"
+                        BorderThickness="0 2 0 1"
+                        BorderBrush="{ui:ThemeResource ResourceKey=SystemControlPageBackgroundChromeMediumLowBrush}" Grid.RowSpan="2"
+                        >
+                    <Grid Margin="15,5">
 
-                    <TextBlock Text="Enable Ambient Lights" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="16" Style="{ui:ThemeResource ResourceKey=BaseTextBlockStyle}" Margin="15,0"/>
+                        <TextBlock Text="Enable Ambient Lights" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="16" Style="{ui:ThemeResource ResourceKey=BaseTextBlockStyle}" />
 
-                    <ui:ToggleSwitch x:Name="controlSwitch"  OnContent="" OffContent="" Width="40" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="15,0" Toggled="ToggleSwitch_Toggled"/>
+                        <ui:ToggleSwitch x:Name="controlSwitch"  OnContent="" OffContent="" Width="40" VerticalAlignment="Center" HorizontalAlignment="Right" IsOn="{Binding Path=IsEnabled,Mode=TwoWay}" IsEnabled="{Binding Path=IsEnabling, Mode=OneWay}"/>
 
-                </Grid>
+                    </Grid>
+                </Border>
+                
+         
 
                 <Border x:Name="InfoArea"
                         Panel.ZIndex="1"
                         Grid.Row="1"
-                        Height="55"
+                        Height="45"
                         VerticalAlignment="Bottom"
                         Background="{ui:ThemeResource ResourceKey=SystemControlBackgroundChromeMediumBrush}"
-                        Visibility="Hidden"
-                        BorderThickness="0 2 0 1"
+                        Visibility="{Binding Path=IsEnabling, Converter={StaticResource BoolToVis}, ConverterParameter='t2c_f2v'}"
+                        d:Visibility="Visible"
+                        BorderThickness="0 2 0 0"
                         BorderBrush="{ui:ThemeResource ResourceKey=SystemControlPageBackgroundChromeMediumLowBrush}"
+                        Margin="0 0 0 -2"
                         >
                     <Grid>
-                        <TextBlock Text="Enabling Mystic Ambient" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Enabling Mystic Ambient" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0 0 0 5"/>
+                        <ui:ProgressBar VerticalAlignment="Bottom" IsIndeterminate="True"/>
                     </Grid>
                 </Border>
 
@@ -151,7 +162,7 @@
 
                 <Grid Grid.Row="1" VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="25">
-                        <Grid x:Name="SideContainer_Left"  Width="140" Height="210">
+                        <Grid x:Name="SideContainer_Left"  Width="140" Height="150">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="2*"/>
                                 <RowDefinition Height="*"/>
@@ -186,7 +197,7 @@
                             <Rectangle x:Name="Led24" Fill="Blue" Grid.Column="4"/>
                         </Grid>
                         <Rectangle Width="20" Fill="Transparent"/>
-                        <Grid x:Name="SideContainer_Right" Height="210" Width="140">
+                        <Grid x:Name="SideContainer_Right" Height="150" Width="140">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="2*"/>
                                 <RowDefinition Height="*"/>
