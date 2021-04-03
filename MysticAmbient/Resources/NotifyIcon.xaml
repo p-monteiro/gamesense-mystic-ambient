@@ -13,9 +13,10 @@
     <ContextMenu x:Shared="true" x:Key="TrayMenu">
         <MenuItem Header="Open Mystic Ambient" Command="{Binding OpenMainWindowCommand}" />
         <Separator />
+        <!-- TODO
         <MenuItem Header="Enable Lights" Command="{Binding EnableLightsCommand}" />
         <MenuItem Header="Disable Lights" Command="{Binding DisableLightsCommand}" />
-        <Separator />
+        <Separator />-->
         <MenuItem Header="Exit" Command="{Binding ExitApplicationCommand}" />
     </ContextMenu>
 
