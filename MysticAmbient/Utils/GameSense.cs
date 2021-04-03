@@ -36,7 +36,6 @@ namespace MysticAmbient.Utils
 
         public async Task<bool> InitGameSenseAsync()
         {
-            //return (IsReady = false);
             try
             {
                 // Read configuration from %PROGRAMDATA%/SteelSeries/SteelSeries Engine 3/coreProps.json
@@ -44,10 +43,21 @@ namespace MysticAmbient.Utils
                 SseCoreProps coreProps = JsonConvert.DeserializeObject<SseCoreProps>(corePropsContent);
                 SseAddress = coreProps.address;
 
-                sseApiClient = new();
-                sseApiClient.BaseUrl = new Uri($"http://{SseAddress}");
+                Debug.WriteLine("GameSenseClient :: API found at " + SseAddress + ". Trying to connect");
 
-                return (IsReady = true);
+                sseApiClient = new(new Uri($"http://{SseAddress}"));
+
+                if (IsReady = await PingSseServer())
+                    Debug.WriteLine("GameSenseClient :: Connected to SSE server.");
+                else
+                    Debug.WriteLine("GameSenseClient :: SSE Server not responding.");
+
+                return IsReady;
+            }
+            catch (System.IO.FileNotFoundException ex)
+            {
+                Debug.WriteLine("GameSenseClient :: API Configuration file not found.\n" + ex.Message);
+                return (IsReady = false);
             }
             catch (Exception ex)
             {
@@ -57,7 +67,32 @@ namespace MysticAmbient.Utils
 
         }
 
-        public bool RegisterGame(int msDeinitializeTimer = 5000)
+
+        private async Task<bool> PingSseServer()
+        {
+            if (sseApiClient == null)
+                return false;
+
+            try
+            {
+                RestRequest sseApiRequest = new(Method.GET);
+                IRestResponse sseApiResponse = await sseApiClient.ExecuteAsync(sseApiRequest);
+
+                //If the SSE server responds with 404, it is there!
+                if (sseApiResponse.StatusCode == HttpStatusCode.NotFound)
+                    return true;
+                else
+                    return false;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+
+        }
+
+
+        public async Task<bool> RegisterGame(int msDeinitializeTimer = 5000)
         {
             if (!IsReady)
             {
@@ -78,7 +113,7 @@ namespace MysticAmbient.Utils
 
                 sseApiRequest.AddParameter("application/json", payload, ParameterType.RequestBody);
 
-                IRestResponse sseApiResponse = sseApiClient.Execute(sseApiRequest);
+                IRestResponse sseApiResponse = await sseApiClient.ExecuteAsync(sseApiRequest);
 
                 if (sseApiResponse.StatusCode == HttpStatusCode.OK)
                 {
