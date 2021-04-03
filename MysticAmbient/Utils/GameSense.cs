@@ -131,6 +131,42 @@ namespace MysticAmbient.Utils
             }
         }
 
+        public async Task<bool> RegisterGoLispHandlers (string goLispHandlers)
+        {
+            if (!IsReady)
+            {
+                return false;
+            }
+
+            try
+            {
+                RestRequest sseApiRequest = new(Method.POST) { Resource = "load_golisp_handlers" };
+
+                string payload = JsonConvert.SerializeObject(new SseGoLispHandlers()
+                {
+                    game = SseGameId,
+                    golisp = goLispHandlers
+                });
+
+                sseApiRequest.AddParameter("application/json", payload, ParameterType.RequestBody);
+
+                IRestResponse sseApiResponse = await sseApiClient.ExecuteAsync(sseApiRequest);
+
+                if (sseApiResponse.StatusCode == HttpStatusCode.OK)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return false;
+            }
+        }
     }
 
     public class SseCoreProps
@@ -145,5 +181,11 @@ namespace MysticAmbient.Utils
         public string game_display_name { get; set; }
         public string developer { get; set; }
         public int deinitialize_timer_length_ms { get; set; }
+    }
+
+    public class SseGoLispHandlers
+    {
+        public string game { get; set; }
+        public string golisp { get; set; }
     }
 }

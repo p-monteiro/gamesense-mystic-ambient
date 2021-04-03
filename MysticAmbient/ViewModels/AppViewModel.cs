@@ -110,7 +110,7 @@ namespace MysticAmbient.ViewModels
         private bool _isEnabled = false;
         public bool IsEnabled
         {
-            get => _isEnabled; 
+            get => _isEnabled;
             set
             {
                 TryEnableSSE();
@@ -161,15 +161,24 @@ namespace MysticAmbient.ViewModels
             EnablingStatusLabel = string.Empty;
             EnablingProgress = 0;
 
-
+            //Register application in SSE
             EnablingProgress = 50;
             EnablingStatusLabel = "Registering";
-            await Task.Delay(2000);
-            ErrorEnabling = await SseClient.RegisterGame();
-
-            if (ErrorEnabling)
+            await Task.Delay(1000);
+            if (ErrorEnabling = !await SseClient.RegisterGame())
             {
                 EnablingStatusLabel = "Error Registering";
+                IsEnabling = false;
+                return;
+            }
+
+            //Register application's GoLisp Handlers
+            EnablingProgress = 70;
+            EnablingStatusLabel = "GoLisp";
+            await Task.Delay(2000);
+            if (ErrorEnabling = await SseClient.RegisterGoLispHandlers(BuildLispEventCode()))
+            {
+                EnablingStatusLabel = "Error GoLisp";
                 IsEnabling = false;
                 return;
             }
@@ -183,5 +192,53 @@ namespace MysticAmbient.ViewModels
         }
 
         #endregion
+
+
+
+        private string BuildLispEventCode()
+        {
+            return
+
+                "(add-custom-zone '(\"mystic_right\" 9 10 11))" + "\n" +
+                "(add-custom-zone '(\"mystic_center_r\" 0 1 2 3 4 5 6 7 8))" + "\n" +
+                "(add-custom-zone '(\"mystic_center_l\" 12 13 14 15 16 17 18 19 20))" + "\n" +
+                "(add-custom-zone '(\"mystic_left\" 21 22 23))" + "\n" +
+                "" + "\n" +
+                "(handler \"COLORS\"" + "\n" +
+                "    (lambda (data)" + "\n" +
+                "        (let* (" + "\n" +
+                "                (right_r (right-r: (frame: data)))" + "\n" +
+                "                (right_g (right-g: (frame: data)))" + "\n" +
+                "                (right_b (right-b: (frame: data)))" + "\n" +
+                "                (center_r_r (center-r-r: (frame: data)))" + "\n" +
+                "                (center_r_g (center-r-g: (frame: data)))" + "\n" +
+                "                (center_r_b (center-r-b: (frame: data)))" + "\n" +
+                "                (center_l_r (center-l-r: (frame: data)))" + "\n" +
+                "                (center_l_g (center-l-g: (frame: data)))" + "\n" +
+                "                (center_l_b (center-l-b: (frame: data)))" + "\n" +
+                "                (left_r (left-r: (frame: data)))" + "\n" +
+                "                (left_g (left-g: (frame: data)))" + "\n" +
+                "                (left_b (left-b: (frame: data)))" + "\n" +
+                "" + "\n" +
+                "" + "\n" +
+                "                (right_c (list right_r right_g right_b))" + "\n" +
+                "                (center_r_c (list center_r_r center_r_g center_r_b))" + "\n" +
+                "                (center_l_c (list center_l_r center_l_g center_l_b))" + "\n" +
+                "                (left_c (list left_r left_g left_b))" + "\n" +
+                "            )" + "\n" +
+                "" + "\n" +
+                "            (on-device 'rgb-24-zone show-on-zone: right_c mystic_right:)" + "\n" +
+                "            (on-device 'rgb-24-zone show-on-zone: center_r_c mystic_center_r:)" + "\n" +
+                "            (on-device 'rgb-24-zone show-on-zone: center_l_c mystic_center_l:)" + "\n" +
+                "            (on-device 'rgb-24-zone show-on-zone: left_c mystic_left:)" + "\n" +
+                "        )" + "\n" +
+                "    )" + "\n" +
+                ")" + "\n" +
+                "" + "\n" +
+                "(add-event-zone-use-with-specifier \"COLORS\" \"all\" \"rgb-24-zone\")";
+
+        }
+
+
     }
 }
