@@ -105,6 +105,8 @@ namespace MysticAmbient.ViewModels
 
         #endregion
 
+        #region Enable Lights
+
         private bool _isEnabled = false;
         public bool IsEnabled
         {
@@ -115,7 +117,7 @@ namespace MysticAmbient.ViewModels
             }
         }
 
-        private bool _isEnabling = true;
+        private bool _isEnabling = false;
         public bool IsEnabling
         {
             get => _isEnabling;
@@ -123,17 +125,63 @@ namespace MysticAmbient.ViewModels
 
         }
 
+        private bool _isEnableStatusPanelOpen = false;
+        public bool IsEnableStatusPanelOpen
+        {
+            get => _isEnableStatusPanelOpen;
+            private set => SetProperty(ref _isEnableStatusPanelOpen, value);
+        }
+
+        private bool _errorEnabling = false;
+        public bool ErrorEnabling
+        {
+            get => _errorEnabling;
+            private set => SetProperty(ref _errorEnabling, value);
+        }
+
+        private string _enablingStatusLabel = string.Empty;
+        public string EnablingStatusLabel
+        {
+            get => _enablingStatusLabel;
+            private set => SetProperty(ref _enablingStatusLabel, value);
+        }
+
+        private int _enablingProgress = 0;
+        public int EnablingProgress
+        {
+            get => _enablingProgress;
+            private set => SetProperty(ref _enablingProgress, value);
+        }
+
         private async void TryEnableSSE()
         {
-            IsEnabling = false;
-            await Task.Delay(10000);
-            Debug.WriteLine("VM: Change " + (!IsEnabled).ToString());
-            _isEnabled = !_isEnabled;
+            ErrorEnabling = false;
+            IsEnableStatusPanelOpen = true;
             IsEnabling = true;
+            EnablingStatusLabel = string.Empty;
+            EnablingProgress = 0;
+
+
+            EnablingProgress = 50;
+            EnablingStatusLabel = "Registering";
+            await Task.Delay(2000);
+            ErrorEnabling = await SseClient.RegisterGame();
+
+            if (ErrorEnabling)
+            {
+                EnablingStatusLabel = "Error Registering";
+                IsEnabling = false;
+                return;
+            }
+
+            _isEnabled = !_isEnabled;
+            IsEnabling = false;
 
             OnPropertyChanged("IsEnabled");
+            IsEnableStatusPanelOpen = false;
             //SetProperty(ref _isEnabling, value);
         }
 
+        #endregion
     }
 }

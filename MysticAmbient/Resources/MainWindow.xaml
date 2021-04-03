@@ -33,7 +33,10 @@
         Loaded="Window_Loaded"
         >
     <Window.Resources>
+        <ResourceDictionary>
         <utils:BoolToVisConverter x:Key="BoolToVis" />
+        <utils:InverseBooleanConverter x:Key="BoolInv" />
+        </ResourceDictionary>
     </Window.Resources>
     <d:Window.DataContext>
         <vm:AppViewModel />
@@ -130,7 +133,7 @@
 
                         <TextBlock Text="Enable Ambient Lights" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="16" Style="{ui:ThemeResource ResourceKey=BaseTextBlockStyle}" />
 
-                        <ui:ToggleSwitch x:Name="controlSwitch"  OnContent="" OffContent="" Width="40" VerticalAlignment="Center" HorizontalAlignment="Right" IsOn="{Binding Path=IsEnabled,Mode=TwoWay}" IsEnabled="{Binding Path=IsEnabling, Mode=OneWay}"/>
+                        <ui:ToggleSwitch x:Name="controlSwitch"  OnContent="" OffContent="" Width="40" VerticalAlignment="Center" HorizontalAlignment="Right" IsOn="{Binding Path=IsEnabled,Mode=TwoWay}" IsEnabled="{Binding Path=IsEnabling, Mode=OneWay, Converter={StaticResource BoolInv}}"/>
 
                     </Grid>
                 </Border>
@@ -143,15 +146,15 @@
                         Height="45"
                         VerticalAlignment="Bottom"
                         Background="{ui:ThemeResource ResourceKey=SystemControlBackgroundChromeMediumBrush}"
-                        Visibility="{Binding Path=IsEnabling, Converter={StaticResource BoolToVis}, ConverterParameter='t2c_f2v'}"
+                        Visibility="{Binding Path=IsEnableStatusPanelOpen, Converter={StaticResource BoolToVis}, ConverterParameter='t2v_f2c'}"
                         d:Visibility="Visible"
                         BorderThickness="0 2 0 0"
                         BorderBrush="{ui:ThemeResource ResourceKey=SystemControlPageBackgroundChromeMediumLowBrush}"
                         Margin="0 0 0 -2"
                         >
                     <Grid>
-                        <TextBlock Text="Enabling Mystic Ambient" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0 0 0 5"/>
-                        <ui:ProgressBar VerticalAlignment="Bottom" IsIndeterminate="True"/>
+                        <TextBlock Text="{Binding EnablingStatusLabel, Mode=OneWay}" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0 0 0 5"/>
+                        <ui:ProgressBar VerticalAlignment="Bottom" Value="{Binding EnablingProgress, Mode=OneWay}" ShowError="{Binding ErrorEnabling, Mode=OneWay}"/>
                     </Grid>
                 </Border>
 
