@@ -143,7 +143,7 @@
                 <Border x:Name="InfoArea"
                         Panel.ZIndex="1"
                         Grid.Row="1"
-                        Height="45"
+                        Height="50"
                         VerticalAlignment="Bottom"
                         Background="{ui:ThemeResource ResourceKey=SystemControlBackgroundChromeMediumBrush}"
                         Visibility="{Binding Path=IsEnableStatusPanelOpen, Converter={StaticResource BoolToVis}, ConverterParameter='t2v_f2c'}"
@@ -153,8 +153,11 @@
                         Margin="0 0 0 -2"
                         >
                     <Grid>
-                        <TextBlock Text="{Binding EnablingStatusLabel, Mode=OneWay}" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0 0 0 5"/>
-                        <ui:ProgressBar VerticalAlignment="Bottom" Value="{Binding EnablingProgress, Mode=OneWay}" ShowError="{Binding ErrorEnabling, Mode=OneWay}"/>
+                        <TextBlock d:Text="EnablingStatus" Text="{Binding Path=EnablingStatusLabel, Mode=OneWay}" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0 0 0 4"/>
+
+                        <Button Content="&#xf3f8;" FontFamily="{StaticResource FluentIcons}" Command="{Binding Path=HideEnableStatusPanelCommand}" Visibility="{Binding Path=ErrorEnabling, Converter={StaticResource BoolToVis}, ConverterParameter='t2v_f2c'}"  VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0 0 15 4" Width="30" Height="30" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                        
+                        <ui:ProgressBar VerticalAlignment="Bottom" Value="{Binding Path=EnablingProgress, Mode=OneWay}" ShowError="{Binding Path=ErrorEnabling, Mode=OneWay}"/>
                     </Grid>
                 </Border>
 

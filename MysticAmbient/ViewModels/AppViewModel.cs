@@ -28,6 +28,8 @@ namespace MysticAmbient.ViewModels
 
             TryConnectSseCommand = new AsyncRelayCommand(TryConnectSse, TryConnectSseCanExecute);
 
+            HideEnableStatusPanelCommand = new RelayCommand(HideEnableStatusPanel);
+
             OpenMainWindowCommand.Execute(null);
             TryConnectSseCommand.Execute(null);
 
@@ -113,7 +115,10 @@ namespace MysticAmbient.ViewModels
             get => _isEnabled;
             set
             {
-                TryEnableSSE();
+                if (!_isEnabled)
+                    TryEnableSSE();
+                else
+                    SetProperty(ref _isEnabled, false);
             }
         }
 
@@ -153,13 +158,20 @@ namespace MysticAmbient.ViewModels
             private set => SetProperty(ref _enablingProgress, value);
         }
 
+
+        public RelayCommand HideEnableStatusPanelCommand { get; }
+        public void HideEnableStatusPanel()
+        {
+            IsEnableStatusPanelOpen = false;
+        }
+
         private async void TryEnableSSE()
         {
             ErrorEnabling = false;
-            IsEnableStatusPanelOpen = true;
             IsEnabling = true;
             EnablingStatusLabel = string.Empty;
             EnablingProgress = 0;
+            IsEnableStatusPanelOpen = true;
 
             //Register application in SSE
             EnablingProgress = 50;
@@ -176,7 +188,7 @@ namespace MysticAmbient.ViewModels
             EnablingProgress = 70;
             EnablingStatusLabel = "GoLisp";
             await Task.Delay(2000);
-            if (ErrorEnabling = await SseClient.RegisterGoLispHandlers(BuildLispEventCode()))
+            if (ErrorEnabling = !await SseClient.RegisterGoLispHandlers(BuildLispEventCode()))
             {
                 EnablingStatusLabel = "Error GoLisp";
                 IsEnabling = false;
