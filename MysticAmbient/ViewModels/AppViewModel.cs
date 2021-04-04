@@ -5,6 +5,9 @@ using MysticAmbient.Resources;
 using MysticAmbient.Utils;
 using System;
 using System.Diagnostics;
+using System.Net;
+using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -17,11 +20,15 @@ namespace MysticAmbient.ViewModels
         public static readonly string APP_NAME = "Mystic Ambient";
         public static readonly string APP_DEV = "Pedro Monteiro";
         public static readonly int N_LEDS = 24;
+        public static readonly int WARL_PORT = 21324;
 
         public GameSenseClient SseClient { get; private set; }
 
         public LedLight[] Leds { get; private set; }
         public LedZone[] Zones { get; private set; }
+
+        UdpClient udpWarlClient;
+        IPEndPoint warlEndPoint;
 
         public AppViewModel()
         {
@@ -167,6 +174,8 @@ namespace MysticAmbient.ViewModels
         }
 
         private int _enablingProgress = 0;
+        private bool runWarlUpdates;
+
         public int EnablingProgress
         {
             get => _enablingProgress;
@@ -202,11 +211,88 @@ namespace MysticAmbient.ViewModels
             //Register application's GoLisp Handlers
             EnablingProgress = 70;
             EnablingStatusLabel = "GoLisp";
-            await Task.Delay(2000);
+            await Task.Delay(1000);
             if (ErrorEnabling = !await SseClient.RegisterGoLispHandlers(BuildLispEventCode()))
             {
                 EnablingStatusLabel = "Error GoLisp";
                 IsEnabling = false;
+                return;
+            }
+
+            //Start WARL Server and Thread Loop
+            EnablingProgress = 80;
+            EnablingStatusLabel = "WARL";
+            await Task.Delay(2000);
+            try
+            {
+                udpWarlClient = new(WARL_PORT);
+                udpWarlClient.Client.ReceiveTimeout = 1000;
+                warlEndPoint = new(IPAddress.Any, WARL_PORT);
+                runWarlUpdates = true;
+
+                Thread warlReceiverThread = new(() =>
+                {
+                    runWarlUpdates = true;
+
+                    while (runWarlUpdates)
+                    {
+                        try
+                        {
+                            byte[] data = udpWarlClient.Receive(ref warlEndPoint);
+
+                            // WARL Data
+                            // data[0] -> type
+                            // data[1] -> waitSeconds
+                            // -- LED Block 1
+                            // data[2] -> ledNumber
+                            // data[3] -> Red
+                            // data[4] -> Green
+                            // data[5] -> Blue
+                            // ...
+
+
+                            int type = (data.Length >= 1) ? Convert.ToInt32(data[0]) : -1;
+                            int waitSeconds = (data.Length >= 2) ? Convert.ToInt32(data[1]) : -1;
+
+                            for (int i = 2; i < data.Length; i += 4)
+                            {
+                                int zone = Convert.ToInt32(data[i]); // WARL LED
+
+                                if (zone > -1 && zone < N_LEDS)
+                                {
+                                    if (zone < Zones.Length)
+                                    {
+                                        lock (Zones[zone])
+                                        {
+                                            App.Current.Dispatcher.Invoke(() => Zones[zone].SetZoneColor(data[i + 1], data[i + 2], data[i + 3]));
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        catch (SocketException ex)
+                        {
+                            Debug.WriteLine($"{DateTime.Now.ToLongTimeString()} - No updates from WARL received");
+                        }
+                    }
+                });
+
+                warlReceiverThread.Start();
+            }
+            catch (SocketException ex)
+            {
+                Debug.WriteLine(ex.Message);
+                EnablingStatusLabel = "Error WARL Port in Use";
+                IsEnabling = false;
+                ErrorEnabling = true;
+                return;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                EnablingStatusLabel = "Error WARL";
+                IsEnabling = false;
+                ErrorEnabling = true;
                 return;
             }
 
@@ -224,45 +310,34 @@ namespace MysticAmbient.ViewModels
 
         private string BuildLispEventCode()
         {
-            return
+            string lispCode = string.Empty;
 
-                "(add-custom-zone '(\"mystic_right\" 9 10 11))" + "\n" +
-                "(add-custom-zone '(\"mystic_center_r\" 0 1 2 3 4 5 6 7 8))" + "\n" +
-                "(add-custom-zone '(\"mystic_center_l\" 12 13 14 15 16 17 18 19 20))" + "\n" +
-                "(add-custom-zone '(\"mystic_left\" 21 22 23))" + "\n" +
-                "" + "\n" +
-                "(handler \"COLORS\"" + "\n" +
-                "    (lambda (data)" + "\n" +
-                "        (let* (" + "\n" +
-                "                (right_r (right-r: (frame: data)))" + "\n" +
-                "                (right_g (right-g: (frame: data)))" + "\n" +
-                "                (right_b (right-b: (frame: data)))" + "\n" +
-                "                (center_r_r (center-r-r: (frame: data)))" + "\n" +
-                "                (center_r_g (center-r-g: (frame: data)))" + "\n" +
-                "                (center_r_b (center-r-b: (frame: data)))" + "\n" +
-                "                (center_l_r (center-l-r: (frame: data)))" + "\n" +
-                "                (center_l_g (center-l-g: (frame: data)))" + "\n" +
-                "                (center_l_b (center-l-b: (frame: data)))" + "\n" +
-                "                (left_r (left-r: (frame: data)))" + "\n" +
-                "                (left_g (left-g: (frame: data)))" + "\n" +
-                "                (left_b (left-b: (frame: data)))" + "\n" +
-                "" + "\n" +
-                "" + "\n" +
-                "                (right_c (list right_r right_g right_b))" + "\n" +
-                "                (center_r_c (list center_r_r center_r_g center_r_b))" + "\n" +
-                "                (center_l_c (list center_l_r center_l_g center_l_b))" + "\n" +
-                "                (left_c (list left_r left_g left_b))" + "\n" +
-                "            )" + "\n" +
-                "" + "\n" +
-                "            (on-device 'rgb-24-zone show-on-zone: right_c mystic_right:)" + "\n" +
-                "            (on-device 'rgb-24-zone show-on-zone: center_r_c mystic_center_r:)" + "\n" +
-                "            (on-device 'rgb-24-zone show-on-zone: center_l_c mystic_center_l:)" + "\n" +
-                "            (on-device 'rgb-24-zone show-on-zone: left_c mystic_left:)" + "\n" +
-                "        )" + "\n" +
-                "    )" + "\n" +
-                ")" + "\n" +
-                "" + "\n" +
-                "(add-event-zone-use-with-specifier \"COLORS\" \"all\" \"rgb-24-zone\")";
+            // (add-custom-zone '("ma_zone_i" 0 1 2 ...))
+            for (int i = 0; i < Zones.Length; i++)
+            {
+                string zone_lisp = $"(add-custom-zone '(\"ma_zone_{i}\"";
+                foreach (LedLight led in Zones[i].Leds)
+                {
+                    zone_lisp += $" {led.Number}";
+                }
+                zone_lisp += "))" + "\n";
+                lispCode += zone_lisp;
+            }
+
+            lispCode +=
+                "(handler \"UPDATELEDS\"" + "\n" +
+                "   (lambda (data)" + "\n" +
+                "       (let* ((device (value: data))" + "\n" +
+                "           (zoneData (frame: data))" + "\n" +
+                "           (zones (frame-keys zoneData)))" + "\n" +
+                "       (do ((zoneDo zones (cdr zoneDo)))" + "\n" +
+                "           ((nil? zoneDo))" + "\n" +
+                "           (let* ((zone (car zoneDo))" + "\n" +
+                "           (color (get-slot zoneData zone)))" + "\n" +
+                "           (on-device device show-on-zone: color zone))))))" + "\n" +
+                "(add-event-zone-use-with-specifier \"UPDATELEDS\" \"all\" \"rgb-24-zone\")";
+
+            return lispCode;
 
         }
 

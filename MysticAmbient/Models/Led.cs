@@ -11,46 +11,48 @@ namespace MysticAmbient.Models
     public class LedLight : ObservableObject
     {
         public int Number { get; private set; }
-        public int R { get => c.R; }
-        public int G { get => c.G; }
-        public int B { get => c.B; }
 
         private SolidColorBrush ledColor;
         public SolidColorBrush LedColor { get => ledColor; set => SetProperty(ref ledColor, value); }
 
-        Color c = Color.FromRgb(0, 0, 0);
-
         public LedLight(int number)
         {
-            ledColor = new SolidColorBrush(c);
             Number = number;
-        }
-
-        public void SetLedColor(byte red, byte green, byte blue)
-        {
-            c.R = red;
-            c.G = green;
-            c.B = blue;
-            LedColor.Color = c;
         }
     }
 
 
-    public class LedZone
+    public class LedZone : ObservableObject
     {
-        LedLight[] leds;
+        public LedLight[] Leds { get; private set; }
+
+        private SolidColorBrush zoneColor;
+        public SolidColorBrush ZoneColor { get => zoneColor; set => SetProperty(ref zoneColor, value); }
+
+        public int R { get => c.R; }
+        public int G { get => c.G; }
+        public int B { get => c.B; }
+
+        Color c = Color.FromRgb(0, 0, 0);
 
         public LedZone(LedLight[] leds)
         {
-            this.leds = leds;
+            zoneColor = new SolidColorBrush(c);
+
+            this.Leds = leds;
+            foreach(LedLight led in this.Leds)
+            {
+                led.LedColor = ZoneColor;
+            }
         }
 
         public void SetZoneColor(byte red, byte green, byte blue)
         {
-            foreach (LedLight led in leds)
-            {
-                led.SetLedColor(red, green, blue);
-            }
+            c.R = red;
+            c.G = green;
+            c.B = blue;
+
+            ZoneColor.Color = c;
         }
     }
 }
