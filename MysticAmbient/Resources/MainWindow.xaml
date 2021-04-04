@@ -168,9 +168,9 @@
 
                 <Grid Grid.Row="1" VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="25">
-                        <Grid x:Name="SideContainer_Left"  Width="140" Height="150">
+                        <Grid x:Name="SideContainer_Left" Height="150" Width="100" >
                             <Grid.RowDefinitions>
-                                <RowDefinition Height="2*"/>
+                                <RowDefinition Height="*"/>
                                 <RowDefinition Height="*"/>
                                 <RowDefinition Height="*"/>
                                 <RowDefinition Height="*"/>
@@ -189,23 +189,23 @@
                             <!--<Grid.OpacityMask>
                                 <ImageBrush ImageSource="/Resources/ledMask_Left.png" RenderOptions.BitmapScalingMode="HighQuality" RenderOptions.EdgeMode="Aliased" Stretch="Fill"/>
                             </Grid.OpacityMask>-->
-                            <Rectangle x:Name="Led13" Fill="{Binding Path=Leds[12].LedColor, Mode=OneWay}" Grid.Row="7" Grid.ColumnSpan="5"/>
-                            <Rectangle x:Name="Led14" Fill="{Binding Path=Leds[13].LedColor, Mode=OneWay}" Grid.Row="6" Grid.ColumnSpan="5"/>
-                            <Rectangle x:Name="Led15" Fill="{Binding Path=Leds[14].LedColor, Mode=OneWay}" Grid.Row="5" Grid.ColumnSpan="5"/>
-                            <Rectangle x:Name="Led16" Fill="{Binding Path=Leds[15].LedColor, Mode=OneWay}" Grid.Row="4" Grid.ColumnSpan="5"/>
-                            <Rectangle x:Name="Led17" Fill="{Binding Path=Leds[16].LedColor, Mode=OneWay}" Grid.Row="3" Grid.ColumnSpan="5"/>
-                            <Rectangle x:Name="Led18" Fill="{Binding Path=Leds[17].LedColor, Mode=OneWay}" Grid.Row="2" Grid.ColumnSpan="5"/>
-                            <Rectangle x:Name="Led19" Fill="{Binding Path=Leds[18].LedColor, Mode=OneWay}" Grid.Row="1" Grid.ColumnSpan="5"/>
-                            <Rectangle x:Name="Led20" Fill="{Binding Path=Leds[19].LedColor, Mode=OneWay}" Grid.Column="0"/>
-                            <Rectangle x:Name="Led21" Fill="{Binding Path=Leds[20].LedColor, Mode=OneWay}" Grid.Column="1"/>
+                            <Rectangle x:Name="Led13" Fill="{Binding Path=Leds[12].LedColor, Mode=OneWay}" Grid.Row="7" Grid.Column="5"/>
+                            <Rectangle x:Name="Led14" Fill="{Binding Path=Leds[13].LedColor, Mode=OneWay}" Grid.Row="6" Grid.Column="5"/>
+                            <Rectangle x:Name="Led15" Fill="{Binding Path=Leds[14].LedColor, Mode=OneWay}" Grid.Row="5" Grid.Column="5"/>
+                            <Rectangle x:Name="Led16" Fill="{Binding Path=Leds[15].LedColor, Mode=OneWay}" Grid.Row="4" Grid.Column="5"/>
+                            <Rectangle x:Name="Led17" Fill="{Binding Path=Leds[16].LedColor, Mode=OneWay}" Grid.Row="3" Grid.Column="5"/>
+                            <Rectangle x:Name="Led18" Fill="{Binding Path=Leds[17].LedColor, Mode=OneWay}" Grid.Row="2" Grid.Column="5"/>
+                            <Rectangle x:Name="Led19" Fill="{Binding Path=Leds[18].LedColor, Mode=OneWay}" Grid.Row="1" Grid.Column="5"/>
+                            <Rectangle x:Name="Led20" Fill="{Binding Path=Leds[19].LedColor, Mode=OneWay}" Grid.Column="4"/>
+                            <Rectangle x:Name="Led21" Fill="{Binding Path=Leds[20].LedColor, Mode=OneWay}" Grid.Column="3"/>
                             <Rectangle x:Name="Led22" Fill="{Binding Path=Leds[21].LedColor, Mode=OneWay}" Grid.Column="2"/>
-                            <Rectangle x:Name="Led23" Fill="{Binding Path=Leds[22].LedColor, Mode=OneWay}" Grid.Column="3"/>
-                            <Rectangle x:Name="Led24" Fill="{Binding Path=Leds[23].LedColor, Mode=OneWay}" Grid.Column="4"/>
+                            <Rectangle x:Name="Led23" Fill="{Binding Path=Leds[22].LedColor, Mode=OneWay}" Grid.Column="1"/>
+                            <Rectangle x:Name="Led24" Fill="{Binding Path=Leds[23].LedColor, Mode=OneWay}" Grid.Column="0"/>
                         </Grid>
-                        <Rectangle Width="20" Fill="Transparent"/>
-                        <Grid x:Name="SideContainer_Right" Height="150" Width="140">
+                        <Rectangle Width="50" Fill="Transparent"/>
+                        <Grid x:Name="SideContainer_Right" Height="140" Width="100">
                             <Grid.RowDefinitions>
-                                <RowDefinition Height="2*"/>
+                                <RowDefinition Height="*"/>
                                 <RowDefinition Height="*"/>
                                 <RowDefinition Height="*"/>
                                 <RowDefinition Height="*"/>
@@ -224,13 +224,13 @@
                             <!--<Grid.OpacityMask>
                                 <ImageBrush ImageSource="/Resources/ledMask_Right.png" RenderOptions.BitmapScalingMode="HighQuality" RenderOptions.EdgeMode="Aliased" Stretch="Fill"/>
                             </Grid.OpacityMask>-->
-                            <Rectangle x:Name="Led1" Fill="{Binding Path=Leds[0].LedColor, Mode=OneWay}" Grid.Row="7" Grid.ColumnSpan="5"/>
-                            <Rectangle x:Name="Led2" Fill="{Binding Path=Leds[1].LedColor, Mode=OneWay}" Grid.Row="6" Grid.ColumnSpan="5"/>
-                            <Rectangle x:Name="Led3" Fill="{Binding Path=Leds[2].LedColor, Mode=OneWay}" Grid.Row="5" Grid.ColumnSpan="5"/>
-                            <Rectangle x:Name="Led4" Fill="{Binding Path=Leds[3].LedColor, Mode=OneWay}" Grid.Row="4" Grid.ColumnSpan="5"/>
-                            <Rectangle x:Name="Led5" Fill="{Binding Path=Leds[4].LedColor, Mode=OneWay}" Grid.Row="3" Grid.ColumnSpan="5"/>
-                            <Rectangle x:Name="Led6" Fill="{Binding Path=Leds[5].LedColor, Mode=OneWay}" Grid.Row="2" Grid.ColumnSpan="5"/>
-                            <Rectangle x:Name="Led7" Fill="{Binding Path=Leds[6].LedColor, Mode=OneWay}" Grid.Row="1" Grid.ColumnSpan="5"/>
+                            <Rectangle x:Name="Led1" Fill="{Binding Path=Leds[0].LedColor, Mode=OneWay}" Grid.Row="7" Grid.Column="0"/>
+                            <Rectangle x:Name="Led2" Fill="{Binding Path=Leds[1].LedColor, Mode=OneWay}" Grid.Row="6" Grid.Column="0"/>
+                            <Rectangle x:Name="Led3" Fill="{Binding Path=Leds[2].LedColor, Mode=OneWay}" Grid.Row="5" Grid.Column="0"/>
+                            <Rectangle x:Name="Led4" Fill="{Binding Path=Leds[3].LedColor, Mode=OneWay}" Grid.Row="4" Grid.Column="0"/>
+                            <Rectangle x:Name="Led5" Fill="{Binding Path=Leds[4].LedColor, Mode=OneWay}" Grid.Row="3" Grid.Column="0"/>
+                            <Rectangle x:Name="Led6" Fill="{Binding Path=Leds[5].LedColor, Mode=OneWay}" Grid.Row="2" Grid.Column="0"/>
+                            <Rectangle x:Name="Led7" Fill="{Binding Path=Leds[6].LedColor, Mode=OneWay}" Grid.Row="1" Grid.Column="0"/>
                             <Rectangle x:Name="Led8" Fill="{Binding Path=Leds[7].LedColor, Mode=OneWay}" Grid.Column="0"/>
                             <Rectangle x:Name="Led9" Fill="{Binding Path=Leds[8].LedColor, Mode=OneWay}" Grid.Column="1"/>
                             <Rectangle x:Name="Led10" Fill="{Binding Path=Leds[9].LedColor, Mode=OneWay}" Grid.Column="2"/>
