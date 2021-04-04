@@ -1,5 +1,6 @@
 ﻿using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Microsoft.Toolkit.Mvvm.Input;
+using MysticAmbient.Models;
 using MysticAmbient.Resources;
 using MysticAmbient.Utils;
 using System;
@@ -15,12 +16,27 @@ namespace MysticAmbient.ViewModels
         public static readonly string APP_ID = "MYS_AMB";
         public static readonly string APP_NAME = "Mystic Ambient";
         public static readonly string APP_DEV = "Pedro Monteiro";
+        public static readonly int N_LEDS = 24;
 
         public GameSenseClient SseClient { get; private set; }
+
+        public LedLight[] Leds { get; private set; }
+        public LedZone[] Zones { get; private set; }
 
         public AppViewModel()
         {
             SseClient = new GameSenseClient(APP_ID, APP_NAME, APP_DEV);
+
+            Leds = new LedLight[N_LEDS];
+            for (int i = 0; i < N_LEDS; i++)
+                Leds[i] = new LedLight();
+
+            Zones = new LedZone[4] {
+                new LedZone(new LedLight[3]{ Leds[9], Leds[10], Leds[11]}),
+                new LedZone(new LedLight[9]{ Leds[0], Leds[1], Leds[2], Leds[3], Leds[4], Leds[5], Leds[6], Leds[7], Leds[8]}),
+                new LedZone(new LedLight[9]{ Leds[12], Leds[13], Leds[14], Leds[15], Leds[16], Leds[17], Leds[18], Leds[19], Leds[20]}),
+                new LedZone(new LedLight[3]{ Leds[21], Leds[22], Leds[23]})
+            };
 
             OpenMainWindowCommand = new RelayCommand(OpenMainWindow, OpenMainWindowCanExecute);
             CloseMainWindowCommand = new RelayCommand(CloseWindow);
@@ -88,6 +104,8 @@ namespace MysticAmbient.ViewModels
             {
                 ConnectStatusLabel = "Failed to connect to GameSense";
             }
+
+            Zones[0].SetZoneColor(255, 255, 255);
 
         }
 
@@ -188,7 +206,7 @@ namespace MysticAmbient.ViewModels
             EnablingProgress = 70;
             EnablingStatusLabel = "GoLisp";
             await Task.Delay(2000);
-            if (ErrorEnabling = !await SseClient.RegisterGoLispHandlers(BuildLispEventCode()))
+            if (ErrorEnabling = await SseClient.RegisterGoLispHandlers(BuildLispEventCode()))
             {
                 EnablingStatusLabel = "Error GoLisp";
                 IsEnabling = false;
