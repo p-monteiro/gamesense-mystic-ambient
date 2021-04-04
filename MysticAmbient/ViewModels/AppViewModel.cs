@@ -186,7 +186,6 @@ namespace MysticAmbient.ViewModels
             private set => SetProperty(ref _enablingProgress, value);
         }
 
-
         public RelayCommand HideEnableStatusPanelCommand { get; }
         public void HideEnableStatusPanel()
         {
@@ -202,7 +201,7 @@ namespace MysticAmbient.ViewModels
             IsEnableStatusPanelOpen = true;
 
             // Register application in SSE
-            EnablingProgress = 50;
+            EnablingProgress = 25;
             EnablingStatusLabel = "Registering";
             if (ErrorEnabling = !await SseClient.RegisterGame())
             {
@@ -213,7 +212,7 @@ namespace MysticAmbient.ViewModels
             await Task.Delay(1000);
 
             // Register application's GoLisp Handlers
-            EnablingProgress = 70;
+            EnablingProgress = 50;
             EnablingStatusLabel = "GoLisp";
             if (ErrorEnabling = !await SseClient.RegisterGoLispHandlers(BuildLispEventCode()))
             {
@@ -224,7 +223,7 @@ namespace MysticAmbient.ViewModels
             await Task.Delay(1000);
 
             // Start WARL Server and Receive Thread Loop
-            EnablingProgress = 80;
+            EnablingProgress = 75;
             EnablingStatusLabel = "WARL";
             try
             {
@@ -306,7 +305,7 @@ namespace MysticAmbient.ViewModels
 
 
             // Start SSE Send Thread Loop
-            EnablingProgress = 90;
+            EnablingProgress = 100;
             EnablingStatusLabel = "SSE Send";
             try
             {
@@ -357,7 +356,6 @@ namespace MysticAmbient.ViewModels
 
         }
 
-
         private async Task DisableSSE(int threadsRunning = 2)
         {
             if (!_isEnabled)
@@ -374,7 +372,10 @@ namespace MysticAmbient.ViewModels
             }
 
             foreach (LedZone zone in Zones)
-                zone.SetZoneColor(0, 0, 0);
+                lock(zone)
+                    zone.SetZoneColor(0, 0, 0);
+
+            await Task.Delay(100); //Wait for the lights to go black
 
             if (threadsRunning > 1)
             {
