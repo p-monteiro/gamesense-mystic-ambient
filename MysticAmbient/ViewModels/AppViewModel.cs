@@ -29,6 +29,8 @@ namespace MysticAmbient.ViewModels
 
         UdpClient udpWarlClient;
         IPEndPoint warlEndPoint;
+        Thread warlReceiverThread;
+        private bool runWarlUpdates;
 
         public AppViewModel()
         {
@@ -47,7 +49,7 @@ namespace MysticAmbient.ViewModels
 
             OpenMainWindowCommand = new RelayCommand(OpenMainWindow, OpenMainWindowCanExecute);
             CloseMainWindowCommand = new RelayCommand(CloseWindow);
-            ExitApplicationCommand = new RelayCommand(ExitApplication);
+            ExitApplicationCommand = new AsyncRelayCommand(ExitApplication);
 
             TryConnectSseCommand = new AsyncRelayCommand(TryConnectSse, TryConnectSseCanExecute);
 
@@ -81,8 +83,8 @@ namespace MysticAmbient.ViewModels
             (OpenMainWindowCommand as RelayCommand).NotifyCanExecuteChanged();
         }
 
-        public RelayCommand ExitApplicationCommand { get; }
-        private void ExitApplication() { Application.Current.Shutdown(); }
+        public AsyncRelayCommand ExitApplicationCommand { get; }
+        private async Task ExitApplication() {  await DisableSSE(); Application.Current.Shutdown();}
 
         #region Connect to SSE
 
@@ -140,7 +142,7 @@ namespace MysticAmbient.ViewModels
                 if (!_isEnabled)
                     TryEnableSSE();
                 else
-                    SetProperty(ref _isEnabled, false);
+                    DisableSSE();
             }
         }
 
@@ -174,8 +176,6 @@ namespace MysticAmbient.ViewModels
         }
 
         private int _enablingProgress = 0;
-        private bool runWarlUpdates;
-
         public int EnablingProgress
         {
             get => _enablingProgress;
@@ -228,9 +228,8 @@ namespace MysticAmbient.ViewModels
                 udpWarlClient = new(WARL_PORT);
                 udpWarlClient.Client.ReceiveTimeout = 1000;
                 warlEndPoint = new(IPAddress.Any, WARL_PORT);
-                runWarlUpdates = true;
 
-                Thread warlReceiverThread = new(() =>
+                warlReceiverThread = new(() =>
                 {
                     runWarlUpdates = true;
 
@@ -275,9 +274,14 @@ namespace MysticAmbient.ViewModels
                             Debug.WriteLine($"{DateTime.Now.ToLongTimeString()} - No updates from WARL received");
                         }
                     }
+
+                    runWarlUpdates = true;
                 });
 
                 warlReceiverThread.Start();
+
+                while (!runWarlUpdates)
+                    await Task.Delay(1);
             }
             catch (SocketException ex)
             {
@@ -296,12 +300,34 @@ namespace MysticAmbient.ViewModels
                 return;
             }
 
-            _isEnabled = !_isEnabled;
+            _isEnabled = true;
             IsEnabling = false;
 
             OnPropertyChanged("IsEnabled");
             IsEnableStatusPanelOpen = false;
 
+        }
+
+
+        private async Task DisableSSE()
+        {
+            IsEnabling = true;
+
+            runWarlUpdates = false;
+
+            while (!runWarlUpdates)
+                await Task.Delay(1);
+
+            udpWarlClient.Dispose();
+            warlEndPoint = null;
+
+            foreach (LedZone zone in Zones)
+                zone.SetZoneColor(0, 0, 0);
+
+            IsEnabling = false;
+            _isEnabled = false;
+
+            OnPropertyChanged("IsEnabled");
         }
 
         #endregion
