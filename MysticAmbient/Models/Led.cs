@@ -10,6 +10,7 @@ namespace MysticAmbient.Models
 {
     public class LedLight : ObservableObject
     {
+        public int Number { get; private set; }
         public int R { get => c.R; }
         public int G { get => c.G; }
         public int B { get => c.B; }
@@ -19,9 +20,10 @@ namespace MysticAmbient.Models
 
         Color c = Color.FromRgb(0, 0, 0);
 
-        public LedLight()
+        public LedLight(int number)
         {
             ledColor = new SolidColorBrush(c);
+            Number = number;
         }
 
         public void SetLedColor(byte red, byte green, byte blue)

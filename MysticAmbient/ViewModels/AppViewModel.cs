@@ -29,7 +29,7 @@ namespace MysticAmbient.ViewModels
 
             Leds = new LedLight[N_LEDS];
             for (int i = 0; i < N_LEDS; i++)
-                Leds[i] = new LedLight();
+                Leds[i] = new LedLight(i);
 
             Zones = new LedZone[4] {
                 new LedZone(new LedLight[3]{ Leds[9], Leds[10], Leds[11]}),
@@ -104,9 +104,6 @@ namespace MysticAmbient.ViewModels
             {
                 ConnectStatusLabel = "Failed to connect to GameSense";
             }
-
-            Zones[0].SetZoneColor(255, 255, 255);
-
         }
 
         private bool _isConnectionStatusPanelOpen = false;
@@ -206,7 +203,7 @@ namespace MysticAmbient.ViewModels
             EnablingProgress = 70;
             EnablingStatusLabel = "GoLisp";
             await Task.Delay(2000);
-            if (ErrorEnabling = await SseClient.RegisterGoLispHandlers(BuildLispEventCode()))
+            if (ErrorEnabling = !await SseClient.RegisterGoLispHandlers(BuildLispEventCode()))
             {
                 EnablingStatusLabel = "Error GoLisp";
                 IsEnabling = false;
@@ -218,7 +215,7 @@ namespace MysticAmbient.ViewModels
 
             OnPropertyChanged("IsEnabled");
             IsEnableStatusPanelOpen = false;
-            //SetProperty(ref _isEnabling, value);
+
         }
 
         #endregion
