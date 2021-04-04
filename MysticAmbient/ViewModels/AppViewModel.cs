@@ -4,6 +4,7 @@ using MysticAmbient.Models;
 using MysticAmbient.Resources;
 using MysticAmbient.Utils;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
@@ -19,6 +20,7 @@ namespace MysticAmbient.ViewModels
         public static readonly string APP_ID = "MYS_AMB";
         public static readonly string APP_NAME = "Mystic Ambient";
         public static readonly string APP_DEV = "Pedro Monteiro";
+        public static readonly string EVENT_NAME = "UPDATELEDS";
         public static readonly int N_LEDS = 24;
         public static readonly int WARL_PORT = 21324;
 
@@ -31,6 +33,8 @@ namespace MysticAmbient.ViewModels
         IPEndPoint warlEndPoint;
         Thread warlReceiverThread;
         private bool runWarlUpdates;
+        Thread sseSenderThread;
+        private bool runLedUpdates;
 
         public AppViewModel()
         {
@@ -84,7 +88,7 @@ namespace MysticAmbient.ViewModels
         }
 
         public AsyncRelayCommand ExitApplicationCommand { get; }
-        private async Task ExitApplication() {  await DisableSSE(); Application.Current.Shutdown();}
+        private async Task ExitApplication() { await DisableSSE(); Application.Current.Shutdown(); }
 
         #region Connect to SSE
 
@@ -197,32 +201,31 @@ namespace MysticAmbient.ViewModels
             EnablingProgress = 0;
             IsEnableStatusPanelOpen = true;
 
-            //Register application in SSE
+            // Register application in SSE
             EnablingProgress = 50;
             EnablingStatusLabel = "Registering";
-            await Task.Delay(1000);
             if (ErrorEnabling = !await SseClient.RegisterGame())
             {
                 EnablingStatusLabel = "Error Registering";
                 IsEnabling = false;
                 return;
             }
+            await Task.Delay(1000);
 
-            //Register application's GoLisp Handlers
+            // Register application's GoLisp Handlers
             EnablingProgress = 70;
             EnablingStatusLabel = "GoLisp";
-            await Task.Delay(1000);
             if (ErrorEnabling = !await SseClient.RegisterGoLispHandlers(BuildLispEventCode()))
             {
                 EnablingStatusLabel = "Error GoLisp";
                 IsEnabling = false;
                 return;
             }
+            await Task.Delay(1000);
 
-            //Start WARL Server and Thread Loop
+            // Start WARL Server and Receive Thread Loop
             EnablingProgress = 80;
             EnablingStatusLabel = "WARL";
-            await Task.Delay(2000);
             try
             {
                 udpWarlClient = new(WARL_PORT);
@@ -287,18 +290,64 @@ namespace MysticAmbient.ViewModels
             {
                 Debug.WriteLine(ex.Message);
                 EnablingStatusLabel = "Error WARL Port in Use";
-                IsEnabling = false;
                 ErrorEnabling = true;
+                await DisableSSE(0);
                 return;
             }
             catch (Exception ex)
             {
                 Debug.WriteLine(ex.Message);
                 EnablingStatusLabel = "Error WARL";
-                IsEnabling = false;
+                ErrorEnabling = true;
+                await DisableSSE(0);
+                return;
+            }
+            await Task.Delay(1000);
+
+
+            // Start SSE Send Thread Loop
+            EnablingProgress = 90;
+            EnablingStatusLabel = "SSE Send";
+            try
+            {
+                sseSenderThread = new(async () =>
+                {
+                    runLedUpdates = true;
+
+                    while (runLedUpdates)
+                    {
+                        DataSse d = new DataSse() { value = "rgb-24-zone" };
+                        for (int i = 0; i < Zones.Length; i++)
+                        {
+                            lock (Zones[i])
+                            {
+                                d.frame.Add("ma_zone_" + i, new int[3] { Zones[i].R, Zones[i].G, Zones[i].B });
+                            }
+                        }
+
+                        await SseClient.SendGameEvent(EVENT_NAME, d);
+                        Thread.Sleep(10);
+                    }
+
+                    runLedUpdates = true;
+                });
+
+                sseSenderThread.Start();
+
+                while (!runLedUpdates)
+                    await Task.Delay(1);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                EnablingStatusLabel = "Error SSE Thread";
+                await DisableSSE(1);
                 ErrorEnabling = true;
                 return;
             }
+
+
+            await Task.Delay(1000);
 
             _isEnabled = true;
             IsEnabling = false;
@@ -309,20 +358,35 @@ namespace MysticAmbient.ViewModels
         }
 
 
-        private async Task DisableSSE()
+        private async Task DisableSSE(int threadsRunning = 2)
         {
+            if (!_isEnabled)
+                return;
+
             IsEnabling = true;
 
-            runWarlUpdates = false;
+            if (threadsRunning > 0)
+            {
+                runWarlUpdates = false;
 
-            while (!runWarlUpdates)
-                await Task.Delay(1);
+                while (!runWarlUpdates)
+                    await Task.Delay(1);
+            }
+
+            foreach (LedZone zone in Zones)
+                zone.SetZoneColor(0, 0, 0);
+
+            if (threadsRunning > 1)
+            {
+                runLedUpdates = false;
+
+                while (!runLedUpdates)
+                    await Task.Delay(1);
+            }
 
             udpWarlClient.Dispose();
             warlEndPoint = null;
 
-            foreach (LedZone zone in Zones)
-                zone.SetZoneColor(0, 0, 0);
 
             IsEnabling = false;
             _isEnabled = false;
@@ -351,7 +415,7 @@ namespace MysticAmbient.ViewModels
             }
 
             lispCode +=
-                "(handler \"UPDATELEDS\"" + "\n" +
+                "(handler \"" + EVENT_NAME + "\"" + "\n" +
                 "   (lambda (data)" + "\n" +
                 "       (let* ((device (value: data))" + "\n" +
                 "           (zoneData (frame: data))" + "\n" +

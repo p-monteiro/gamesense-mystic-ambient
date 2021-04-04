@@ -40,7 +40,7 @@ namespace MysticAmbient.Models
             zoneColor = new SolidColorBrush(c);
 
             this.Leds = leds;
-            foreach(LedLight led in this.Leds)
+            foreach (LedLight led in this.Leds)
             {
                 led.LedColor = ZoneColor;
             }
@@ -54,5 +54,11 @@ namespace MysticAmbient.Models
 
             ZoneColor.Color = c;
         }
+    }
+
+    public class DataSse
+    {
+        public string value { get; set; }
+        public Dictionary<string, int[]> frame { get; set; } = new Dictionary<string, int[]>();
     }
 }

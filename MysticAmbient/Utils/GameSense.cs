@@ -131,7 +131,7 @@ namespace MysticAmbient.Utils
             }
         }
 
-        public async Task<bool> RegisterGoLispHandlers (string goLispHandlers)
+        public async Task<bool> RegisterGoLispHandlers(string goLispHandlers)
         {
             if (!IsReady)
             {
@@ -167,6 +167,44 @@ namespace MysticAmbient.Utils
                 return false;
             }
         }
+
+        public async Task<bool> SendGameEvent(string eventName, object data)
+        {
+            if (!IsReady)
+            {
+                return false;
+            }
+
+            try
+            {
+                SseGameEvent gameEvent = new SseGameEvent()
+                {
+                    game = SseGameId,
+                    @event = eventName,
+                    data = data
+                };
+
+                RestRequest sseApiRequest = new(Method.POST) { Resource = "game_event" };
+                sseApiRequest.AddParameter("application/json", JsonConvert.SerializeObject(gameEvent), ParameterType.RequestBody);
+
+                IRestResponse sseApiResponse = await sseApiClient.ExecuteAsync(sseApiRequest);
+
+                if (sseApiResponse.StatusCode == HttpStatusCode.OK)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return false;
+            }
+        }
     }
 
     public class SseCoreProps
@@ -187,5 +225,12 @@ namespace MysticAmbient.Utils
     {
         public string game { get; set; }
         public string golisp { get; set; }
+    }
+
+    public class SseGameEvent
+    {
+        public string game { get; set; }
+        public string @event { get; set; }
+        public object data { get; set; }
     }
 }
